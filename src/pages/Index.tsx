@@ -1,7 +1,7 @@
-import ImageGenerator from "@/components/ImageGenerator";
+import ChatView from "@/components/chat/ChatView";
 
 const Index = () => {
-  return <ImageGenerator />;
+  return <ChatView />;
 };
 
 export default Index;
