@@ -21,22 +21,17 @@ serve(async (req) => {
     const messages: any[] = [];
 
     if (sourceImage) {
-      // Image editing mode
       messages.push({
         role: "user",
         content: [
           { type: "text", text: prompt },
-          {
-            type: "image_url",
-            image_url: { url: sourceImage },
-          },
+          { type: "image_url", image_url: { url: sourceImage } },
         ],
       });
     } else {
-      // Text-to-image generation
       messages.push({
         role: "user",
-        content: prompt,
+        content: `Generate an image of: ${prompt}`,
       });
     }
 
@@ -75,10 +70,31 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    const imageUrl =
-      data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    // Try multiple extraction paths
+    let imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+
+    // Fallback: check if content is multipart with image_url
+    if (!imageUrl) {
+      const content = data.choices?.[0]?.message?.content;
+      if (Array.isArray(content)) {
+        const imgPart = content.find((c: any) => c.type === "image_url");
+        imageUrl = imgPart?.image_url?.url;
+      }
+    }
+
+    // Fallback: check inline_data
+    if (!imageUrl) {
+      const parts = data.choices?.[0]?.message?.content;
+      if (Array.isArray(parts)) {
+        const imgPart = parts.find((p: any) => p.type === "image" || p.inline_data);
+        if (imgPart?.inline_data) {
+          imageUrl = `data:${imgPart.inline_data.mime_type};base64,${imgPart.inline_data.data}`;
+        }
+      }
+    }
 
     if (!imageUrl) {
+      console.error("Full response:", JSON.stringify(data).substring(0, 2000));
       throw new Error("No image was generated. Try a different prompt.");
     }
 
