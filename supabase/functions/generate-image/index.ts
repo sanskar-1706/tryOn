@@ -70,24 +70,6 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    console.log("AI gateway response keys:", JSON.stringify(Object.keys(data)));
-    
-    const choice = data.choices?.[0];
-    if (choice) {
-      console.log("Choice message keys:", JSON.stringify(Object.keys(choice.message || {})));
-      console.log("Has images:", JSON.stringify(!!choice.message?.images));
-      if (choice.message?.images) {
-        console.log("Images count:", choice.message.images.length);
-      }
-      // Log content to see if image is inline
-      const content = choice.message?.content;
-      if (typeof content === "string") {
-        console.log("Content starts with:", content.substring(0, 100));
-      } else if (Array.isArray(content)) {
-        console.log("Content is array with types:", JSON.stringify(content.map((c: any) => c.type)));
-      }
-    }
-
     // Try multiple extraction paths
     let imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
