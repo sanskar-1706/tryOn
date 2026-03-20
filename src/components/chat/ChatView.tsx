@@ -38,7 +38,7 @@ const ChatView: React.FC = () => {
         // Non-streaming image generation
         const { data, error } = await supabase.functions.invoke("chat", {
           body: {
-            messages: [{ role: "user", content: cleanText, image: attachedImage }],
+            messages: [{ role: "user", content: cleanText, images: attachedImages }],
             mode: "image",
           },
         });
