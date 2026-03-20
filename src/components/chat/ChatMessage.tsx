@@ -7,8 +7,8 @@ export type Message = {
   id: string;
   role: "user" | "assistant";
   content: string;
-  image?: string; // base64 or URL for generated images
-  attachedImage?: string; // user-uploaded image
+  image?: string;
+  attachedImages?: string[];
 };
 
 interface ChatMessageProps {
@@ -47,13 +47,22 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
 
       {/* Content */}
       <div className={`flex flex-col gap-2 max-w-[80%] ${isUser ? "items-end" : "items-start"}`}>
-        {/* Attached image (user upload) */}
-        {message.attachedImage && (
-          <img
-            src={message.attachedImage}
-            alt="Attached"
-            className="max-w-[240px] rounded-xl border border-border"
-          />
+        {/* Attached images (user uploads) */}
+        {message.attachedImages && message.attachedImages.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {message.attachedImages.map((img, i) => (
+              <div key={i} className="relative">
+                <img
+                  src={img}
+                  alt={`img ${i + 1}`}
+                  className="max-w-[160px] rounded-xl border border-border"
+                />
+                <span className="absolute bottom-1 left-1 text-[10px] font-medium bg-background/80 text-foreground px-1.5 py-0.5 rounded">
+                  img {i + 1}
+                </span>
+              </div>
+            ))}
+          </div>
         )}
 
         {/* Text content */}

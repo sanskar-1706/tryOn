@@ -19,12 +19,12 @@ const ChatView: React.FC = () => {
 
   useEffect(scrollToBottom, [messages]);
 
-  const handleSend = useCallback(async (text: string, attachedImage?: string) => {
+  const handleSend = useCallback(async (text: string, attachedImages?: string[]) => {
     const userMsg: Message = {
       id: crypto.randomUUID(),
       role: "user",
       content: text,
-      attachedImage,
+      attachedImages,
     };
     setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);
@@ -38,7 +38,7 @@ const ChatView: React.FC = () => {
         // Non-streaming image generation
         const { data, error } = await supabase.functions.invoke("chat", {
           body: {
-            messages: [{ role: "user", content: cleanText, image: attachedImage }],
+            messages: [{ role: "user", content: cleanText, images: attachedImages }],
             mode: "image",
           },
         });
@@ -56,7 +56,7 @@ const ChatView: React.FC = () => {
       } else {
         // Streaming text chat
         const historyForApi = [...messages, userMsg]
-          .filter((m) => !m.image && !m.attachedImage)
+          .filter((m) => !m.image && (!m.attachedImages || m.attachedImages.length === 0))
           .map((m) => ({ role: m.role, content: m.content }));
 
         const resp = await fetch(CHAT_URL, {

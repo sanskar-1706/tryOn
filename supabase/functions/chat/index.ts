@@ -26,8 +26,17 @@ serve(async (req) => {
       const lastMsg = messages[messages.length - 1];
       const aiMessages: any[] = [];
 
-      // Build message content - check if there's an attached image
-      if (lastMsg.image) {
+      // Build message content - check if there are attached images
+      if (lastMsg.images && Array.isArray(lastMsg.images) && lastMsg.images.length > 0) {
+        const contentParts: any[] = [
+          { type: "text", text: lastMsg.content },
+        ];
+        lastMsg.images.forEach((img: string, i: number) => {
+          contentParts.push({ type: "image_url", image_url: { url: img } });
+        });
+        aiMessages.push({ role: "user", content: contentParts });
+      } else if (lastMsg.image) {
+        // Legacy single image support
         aiMessages.push({
           role: "user",
           content: [

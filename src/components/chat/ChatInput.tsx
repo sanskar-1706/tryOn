@@ -2,7 +2,7 @@ import React, { useRef, useState } from "react";
 import { Send, ImageIcon, Upload, X, Loader2 } from "lucide-react";
 
 interface ChatInputProps {
-  onSend: (text: string, image?: string) => void;
+  onSend: (text: string, images?: string[]) => void;
   isLoading: boolean;
   imageMode: boolean;
   onToggleImageMode: () => void;
@@ -10,15 +10,15 @@ interface ChatInputProps {
 
 const ChatInput: React.FC<ChatInputProps> = ({ onSend, isLoading, imageMode, onToggleImageMode }) => {
   const [text, setText] = useState("");
-  const [attachedImage, setAttachedImage] = useState<string | null>(null);
+  const [attachedImages, setAttachedImages] = useState<string[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleSend = () => {
     const trimmed = text.trim();
     if (!trimmed || isLoading) return;
-    onSend(trimmed, attachedImage ?? undefined);
+    onSend(trimmed, attachedImages.length > 0 ? attachedImages : undefined);
     setText("");
-    setAttachedImage(null);
+    setAttachedImages([]);
     if (fileRef.current) fileRef.current.value = "";
   };
 
@@ -29,37 +29,54 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, isLoading, imageMode, onT
     }
   };
 
-  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !file.type.startsWith("image/")) return;
-    const reader = new FileReader();
-    reader.onload = () => setAttachedImage(reader.result as string);
-    reader.readAsDataURL(file);
+  const handleFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    Array.from(files).forEach((file) => {
+      if (!file.type.startsWith("image/")) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        setAttachedImages((prev) => [...prev, reader.result as string]);
+      };
+      reader.readAsDataURL(file);
+    });
+    if (fileRef.current) fileRef.current.value = "";
+  };
+
+  const removeImage = (index: number) => {
+    setAttachedImages((prev) => prev.filter((_, i) => i !== index));
   };
 
   return (
     <div className="p-4 bg-background/80 backdrop-blur-xl border-t border-border">
       <div className="max-w-3xl mx-auto">
-        {/* Attached image preview */}
-        {attachedImage && (
-          <div className="mb-3 relative inline-block">
-            <img src={attachedImage} alt="Attached" className="h-20 rounded-lg border border-border" />
-            <button
-              onClick={() => { setAttachedImage(null); if (fileRef.current) fileRef.current.value = ""; }}
-              className="absolute -top-2 -right-2 p-1 rounded-full bg-destructive text-destructive-foreground"
-            >
-              <X className="w-3 h-3" />
-            </button>
+        {/* Attached images preview */}
+        {attachedImages.length > 0 && (
+          <div className="mb-3 flex flex-wrap gap-3">
+            {attachedImages.map((img, i) => (
+              <div key={i} className="relative group">
+                <img src={img} alt={`img ${i + 1}`} className="h-20 rounded-lg border border-border" />
+                <span className="absolute bottom-1 left-1 text-[10px] font-medium bg-background/80 text-foreground px-1.5 py-0.5 rounded">
+                  img {i + 1}
+                </span>
+                <button
+                  onClick={() => removeImage(i)}
+                  className="absolute -top-2 -right-2 p-1 rounded-full bg-destructive text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            ))}
           </div>
         )}
 
         <div className="flex items-center gap-2">
-          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
+          <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFiles} />
 
           <button
             onClick={() => fileRef.current?.click()}
             className="p-3 rounded-xl bg-card border border-border text-muted-foreground hover:text-foreground hover:border-primary/50 transition-colors flex-shrink-0"
-            title="Upload image"
+            title="Upload images"
           >
             <Upload className="w-5 h-5" />
           </button>
