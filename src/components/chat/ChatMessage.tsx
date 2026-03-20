@@ -7,8 +7,8 @@ export type Message = {
   id: string;
   role: "user" | "assistant";
   content: string;
-  image?: string; // base64 or URL for generated images
-  attachedImage?: string; // user-uploaded image
+  image?: string;
+  attachedImages?: string[];
 };
 
 interface ChatMessageProps {
