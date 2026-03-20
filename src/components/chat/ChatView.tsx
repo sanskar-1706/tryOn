@@ -19,12 +19,12 @@ const ChatView: React.FC = () => {
 
   useEffect(scrollToBottom, [messages]);
 
-  const handleSend = useCallback(async (text: string, attachedImage?: string) => {
+  const handleSend = useCallback(async (text: string, attachedImages?: string[]) => {
     const userMsg: Message = {
       id: crypto.randomUUID(),
       role: "user",
       content: text,
-      attachedImage,
+      attachedImages,
     };
     setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);
