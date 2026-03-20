@@ -56,7 +56,7 @@ const ChatView: React.FC = () => {
       } else {
         // Streaming text chat
         const historyForApi = [...messages, userMsg]
-          .filter((m) => !m.image && !m.attachedImage)
+          .filter((m) => !m.image && (!m.attachedImages || m.attachedImages.length === 0))
           .map((m) => ({ role: m.role, content: m.content }));
 
         const resp = await fetch(CHAT_URL, {
