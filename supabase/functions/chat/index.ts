@@ -26,24 +26,27 @@ serve(async (req) => {
       const lastMsg = messages[messages.length - 1];
       const aiMessages: any[] = [];
 
-      // Build message content - check if there are attached images
-      if (lastMsg.images && Array.isArray(lastMsg.images) && lastMsg.images.length > 0) {
-        const contentParts: any[] = [
-          { type: "text", text: lastMsg.content },
-        ];
-        lastMsg.images.forEach((img: string, i: number) => {
+      const hasMultipleImages = lastMsg.images && Array.isArray(lastMsg.images) && lastMsg.images.length > 1;
+      const hasSingleImage = lastMsg.images && Array.isArray(lastMsg.images) && lastMsg.images.length === 1;
+
+      if (hasMultipleImages || hasSingleImage) {
+        const contentParts: any[] = [];
+
+        // For multi-image (e.g. virtual try-on), add a clear system-like instruction
+        if (hasMultipleImages) {
+          contentParts.push({
+            type: "text",
+            text: `You are an expert AI image editor. The user has provided ${lastMsg.images.length} images labeled img 1 through img ${lastMsg.images.length}. Follow their instructions carefully to combine, edit, or transform these images. Produce a single high-quality output image.\n\nUser instruction: ${lastMsg.content}`,
+          });
+        } else {
+          contentParts.push({ type: "text", text: lastMsg.content });
+        }
+
+        lastMsg.images.forEach((img: string) => {
           contentParts.push({ type: "image_url", image_url: { url: img } });
         });
+
         aiMessages.push({ role: "user", content: contentParts });
-      } else if (lastMsg.image) {
-        // Legacy single image support
-        aiMessages.push({
-          role: "user",
-          content: [
-            { type: "text", text: lastMsg.content },
-            { type: "image_url", image_url: { url: lastMsg.image } },
-          ],
-        });
       } else {
         aiMessages.push({
           role: "user",
@@ -51,68 +54,95 @@ serve(async (req) => {
         });
       }
 
-      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash-image",
-          messages: aiMessages,
-          modalities: ["image", "text"],
-        }),
-      });
+      // Use a better model for multi-image editing tasks
+      const model = hasMultipleImages
+        ? "google/gemini-2.5-flash-image"
+        : "google/gemini-2.5-flash-image";
 
-      if (!response.ok) {
-        if (response.status === 429) {
-          return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }), {
-            status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
+      const maxRetries = 2;
+      let lastError = "";
+
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model,
+            messages: aiMessages,
+            modalities: ["image", "text"],
+          }),
+        });
+
+        if (!response.ok) {
+          if (response.status === 429) {
+            if (attempt < maxRetries) {
+              await new Promise((r) => setTimeout(r, 2000 * (attempt + 1)));
+              continue;
+            }
+            return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }), {
+              status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
+          if (response.status === 402) {
+            return new Response(JSON.stringify({ error: "Usage credits exhausted. Please add credits." }), {
+              status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
+          const text = await response.text();
+          console.error("AI gateway error:", response.status, text);
+          lastError = `AI gateway error: ${response.status}`;
+          if (attempt < maxRetries) continue;
+          throw new Error(lastError);
         }
-        if (response.status === 402) {
-          return new Response(JSON.stringify({ error: "Usage credits exhausted. Please add credits." }), {
-            status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
-        }
-        const text = await response.text();
-        console.error("AI gateway error:", response.status, text);
-        throw new Error(`AI gateway error: ${response.status}`);
-      }
 
-      const data = await response.json();
-      let imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+        const data = await response.json();
+        
+        // Try multiple paths to find the image
+        let imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
-      if (!imageUrl) {
-        const content = data.choices?.[0]?.message?.content;
-        if (Array.isArray(content)) {
-          const imgPart = content.find((c: any) => c.type === "image_url");
-          imageUrl = imgPart?.image_url?.url;
-        }
-      }
-
-      if (!imageUrl) {
-        const parts = data.choices?.[0]?.message?.content;
-        if (Array.isArray(parts)) {
-          const imgPart = parts.find((p: any) => p.type === "image" || p.inline_data);
-          if (imgPart?.inline_data) {
-            imageUrl = `data:${imgPart.inline_data.mime_type};base64,${imgPart.inline_data.data}`;
+        if (!imageUrl) {
+          const content = data.choices?.[0]?.message?.content;
+          if (Array.isArray(content)) {
+            const imgPart = content.find((c: any) => c.type === "image_url");
+            imageUrl = imgPart?.image_url?.url;
+            if (!imageUrl) {
+              const inlinePart = content.find((p: any) => p.type === "image" || p.inline_data);
+              if (inlinePart?.inline_data) {
+                imageUrl = `data:${inlinePart.inline_data.mime_type};base64,${inlinePart.inline_data.data}`;
+              }
+            }
           }
         }
-      }
 
-      const textContent = data.choices?.[0]?.message?.content;
-      const responseText = typeof textContent === "string" ? textContent : "Here's your generated image!";
+        if (imageUrl) {
+          const textContent = data.choices?.[0]?.message?.content;
+          const responseText = typeof textContent === "string" ? textContent : "Here's your generated image!";
+          return new Response(
+            JSON.stringify({ type: "image", content: responseText, imageUrl }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
 
-      if (!imageUrl) {
-        return new Response(
-          JSON.stringify({ type: "text", content: "I wasn't able to generate an image for that prompt. Try rephrasing it!" }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        // No image found - retry with slightly modified prompt
+        console.error("No image in response, attempt", attempt);
+        lastError = "No image generated";
+        if (attempt < maxRetries) {
+          // Slightly rephrase for retry
+          if (aiMessages[0]?.content && typeof aiMessages[0].content === "string") {
+            aiMessages[0].content += " (please generate a visual image)";
+          } else if (Array.isArray(aiMessages[0]?.content)) {
+            const textPart = aiMessages[0].content.find((p: any) => p.type === "text");
+            if (textPart) textPart.text += " Please output an image.";
+          }
+          continue;
+        }
       }
 
       return new Response(
-        JSON.stringify({ type: "image", content: responseText, imageUrl }),
+        JSON.stringify({ type: "text", content: "I wasn't able to generate an image. Try rephrasing your prompt or using fewer/smaller images." }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }

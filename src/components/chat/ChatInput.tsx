@@ -99,7 +99,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, isLoading, imageMode, onT
               value={text}
               onChange={(e) => setText(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={imageMode ? "Describe the image you want..." : "Type a message..."}
+              placeholder={imageMode ? (attachedImages.length > 1 ? "Describe how to combine/edit these images..." : attachedImages.length === 1 ? "Describe how to edit this image..." : "Describe the image you want...") : "Type a message..."}
               className="w-full px-4 py-3 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all text-sm"
               disabled={isLoading}
             />
