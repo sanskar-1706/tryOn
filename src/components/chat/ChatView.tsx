@@ -5,13 +5,16 @@ import { toast } from "sonner";
 import ChatMessage, { type Message } from "./ChatMessage";
 import ChatInput from "./ChatInput";
 import ThemeToggle from "@/components/ThemeToggle";
-import fitGlamLogo from "@/assets/FitGlam_logo.png";
+import fitGlamLogoDark from "@/assets/FitGlam_logo_dark.png";
+import fitGlamLogoLight from "@/assets/FitGlam_logo_light.png";
+import { useTheme } from "@/hooks/use-theme";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 
 const ChatView: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const { theme } = useTheme();
   const [imageMode, setImageMode] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -134,7 +137,7 @@ const ChatView: React.FC = () => {
     <div className="min-h-screen flex flex-col bg-background">
       {/* Header */}
       <header className="flex items-center gap-3 px-6 py-3 border-b border-border flex-shrink-0">
-        <img src={fitGlamLogo} alt="FitGlam" className="h-10 w-auto" />
+        <img src={theme === "dark" ? fitGlamLogoDark : fitGlamLogoLight} alt="FitGlam" className="h-10 w-auto" />
         <h1 className="text-xl font-display font-bold text-foreground tracking-tight">
           FitGlam
         </h1>
