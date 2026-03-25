@@ -136,7 +136,7 @@ const ChatView: React.FC = () => {
     <div className="min-h-screen flex flex-col bg-background">
       {/* Header */}
       <header className="flex items-center gap-3 px-6 py-3 border-b border-border flex-shrink-0">
-        <img src={fitGlamLogo} alt="FitGlam" className="h-10 w-auto" />
+        <img src={theme === "dark" ? fitGlamLogoDark : fitGlamLogoLight} alt="FitGlam" className="h-10 w-auto" />
         <h1 className="text-xl font-display font-bold text-foreground tracking-tight">
           FitGlam
         </h1>
