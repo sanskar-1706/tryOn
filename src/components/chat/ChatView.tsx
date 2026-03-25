@@ -14,6 +14,7 @@ const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 const ChatView: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const { theme } = useTheme();
   const [imageMode, setImageMode] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
