@@ -5,7 +5,9 @@ import { toast } from "sonner";
 import ChatMessage, { type Message } from "./ChatMessage";
 import ChatInput from "./ChatInput";
 import ThemeToggle from "@/components/ThemeToggle";
-import fitGlamLogo from "@/assets/FitGlam_logo.png";
+import fitGlamLogoDark from "@/assets/FitGlam_logo_dark.png";
+import fitGlamLogoLight from "@/assets/FitGlam_logo_light.png";
+import { useTheme } from "@/hooks/use-theme";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 
