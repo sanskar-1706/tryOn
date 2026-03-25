@@ -11,6 +11,52 @@
 
 @layer base {
   :root {
+    --background: 40 20% 95%;
+    --foreground: 0 0% 10%;
+
+    --card: 40 15% 92%;
+    --card-foreground: 0 0% 10%;
+
+    --popover: 40 15% 92%;
+    --popover-foreground: 0 0% 10%;
+
+    --primary: 45 76% 52%;
+    --primary-foreground: 0 0% 5%;
+
+    --secondary: 40 10% 88%;
+    --secondary-foreground: 0 0% 15%;
+
+    --muted: 40 10% 85%;
+    --muted-foreground: 0 0% 40%;
+
+    --accent: 45 60% 42%;
+    --accent-foreground: 0 0% 5%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 40 15% 80%;
+    --input: 40 10% 90%;
+    --ring: 45 76% 52%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 40 20% 95%;
+    --sidebar-foreground: 0 0% 10%;
+    --sidebar-primary: 45 76% 52%;
+    --sidebar-primary-foreground: 0 0% 5%;
+    --sidebar-accent: 40 10% 88%;
+    --sidebar-accent-foreground: 0 0% 10%;
+    --sidebar-border: 40 15% 80%;
+    --sidebar-ring: 45 76% 52%;
+
+    --font-display: "Space Grotesk", sans-serif;
+    --font-body: "Inter", sans-serif;
+
+    --gradient-gold: linear-gradient(45deg, #d4af35, #f5e6b3, #d4af35);
+  }
+
+  .dark {
     --background: 0 0% 8%;
     --foreground: 45 30% 90%;
 
@@ -39,8 +85,6 @@
     --input: 0 0% 15%;
     --ring: 45 76% 52%;
 
-    --radius: 0.75rem;
-
     --sidebar-background: 0 0% 8%;
     --sidebar-foreground: 45 30% 90%;
     --sidebar-primary: 45 76% 52%;
@@ -49,11 +93,6 @@
     --sidebar-accent-foreground: 45 30% 90%;
     --sidebar-border: 45 20% 22%;
     --sidebar-ring: 45 76% 52%;
-
-    --font-display: "Space Grotesk", sans-serif;
-    --font-body: "Inter", sans-serif;
-
-    --gradient-gold: linear-gradient(45deg, #d4af35, #f5e6b3, #d4af35);
   }
 }
 

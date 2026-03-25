@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import ChatMessage, { type Message } from "./ChatMessage";
 import ChatInput from "./ChatInput";
+import ThemeToggle from "@/components/ThemeToggle";
+import fitGlamLogo from "@/assets/FitGlam_logo.png";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 
@@ -131,14 +133,15 @@ const ChatView: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       {/* Header */}
-      <header className="flex items-center gap-3 px-6 py-4 border-b border-border flex-shrink-0">
-        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-          <Sparkles className="w-4 h-4 text-primary-foreground" />
-        </div>
+      <header className="flex items-center gap-3 px-6 py-3 border-b border-border flex-shrink-0">
+        <img src={fitGlamLogo} alt="FitGlam" className="h-10 w-auto" />
         <h1 className="text-xl font-display font-bold text-foreground tracking-tight">
-          PixelForge
+          FitGlam
         </h1>
-        <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-md font-medium">AI Chat + Image Gen</span>
+        <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-md font-medium">AI Fashion Assistant</span>
+        <div className="ml-auto">
+          <ThemeToggle />
+        </div>
       </header>
 
       {/* Messages */}
