@@ -90,16 +90,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, isLoading, imageMode, onT
   };
 
   const handleFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
-    Array.from(files).forEach((file) => {
-      if (!file.type.startsWith("image/")) return;
-      const reader = new FileReader();
-      reader.onload = () => {
-        setAttachedImages((prev) => [...prev, reader.result as string]);
-      };
-      reader.readAsDataURL(file);
-    });
+    if (e.target.files) addImageFiles(e.target.files);
     if (fileRef.current) fileRef.current.value = "";
   };
 
@@ -108,7 +99,19 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, isLoading, imageMode, onT
   };
 
   return (
-    <div className="p-4 bg-background/80 backdrop-blur-xl border-t border-border">
+    <div
+      ref={dropRef}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+      className={`p-4 bg-background/80 backdrop-blur-xl border-t border-border relative transition-colors ${isDragging ? "ring-2 ring-primary bg-primary/5" : ""}`}
+    >
+      {isDragging && (
+        <div className="absolute inset-0 flex items-center justify-center bg-primary/10 backdrop-blur-sm rounded-lg z-10 pointer-events-none">
+          <p className="text-primary font-medium text-sm">Drop images here</p>
+        </div>
+      )}
       <div className="max-w-3xl mx-auto">
         {/* Attached images preview */}
         {attachedImages.length > 0 && (
