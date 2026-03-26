@@ -20,7 +20,9 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, isLoading, imageMode, onT
       if (!file.type.startsWith("image/")) return;
       const reader = new FileReader();
       reader.onload = () => {
-        setAttachedImages((prev) => [...prev, reader.result as string]);
+        if (reader.result && typeof reader.result === "string") {
+          setAttachedImages((prev) => [...prev, reader.result as string]);
+        }
       };
       reader.readAsDataURL(file);
     });
@@ -32,15 +34,24 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, isLoading, imageMode, onT
       const items = e.clipboardData?.items;
       if (!items) return;
       const imageFiles: File[] = [];
-      for (const item of Array.from(items)) {
-        if (item.type.startsWith("image/")) {
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item.kind === "file" && item.type.startsWith("image/")) {
           const file = item.getAsFile();
           if (file) imageFiles.push(file);
         }
       }
       if (imageFiles.length > 0) {
         e.preventDefault();
-        addImageFiles(imageFiles);
+        imageFiles.forEach((file) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            if (reader.result && typeof reader.result === "string") {
+              setAttachedImages((prev) => [...prev, reader.result as string]);
+            }
+          };
+          reader.readAsDataURL(file);
+        });
       }
     };
     document.addEventListener("paste", handlePaste);
