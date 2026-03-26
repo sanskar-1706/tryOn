@@ -36,7 +36,20 @@ serve(async (req) => {
         if (hasMultipleImages) {
           contentParts.push({
             type: "text",
-            text: `You are an expert AI image editor. The user has provided ${lastMsg.images.length} images labeled img 1 through img ${lastMsg.images.length}. Follow their instructions carefully to combine, edit, or transform these images. Produce a single high-quality output image.\n\nUser instruction: ${lastMsg.content}`,
+            text: `You are an expert AI fashion stylist and virtual try-on specialist. The user has provided ${lastMsg.images.length} images labeled img 1 through img ${lastMsg.images.length}.
+
+VIRTUAL TRY-ON RULES:
+- Carefully analyze the POSE and ANGLE of the person photo (front view, side view, 3/4 view, back view, etc.).
+- Extract the garment from the clothing image and realistically fit it onto the person while MATCHING THE EXACT BODY ANGLE AND PERSPECTIVE.
+- For SIDE VIEW photos: warp and perspective-transform the garment so it naturally wraps around the body as seen from the side. Show only the visible side of the garment with proper foreshortening, creases, and fabric draping that match a lateral perspective.
+- For 3/4 VIEW photos: adjust the garment to show the correct proportion of front and side, matching the person's exact turn angle.
+- For BACK VIEW photos: show the back of the garment fitted to the person's back pose.
+- ALWAYS preserve: the person's exact pose, body proportions, skin tone, hair, face, and background.
+- ALWAYS preserve: the garment's exact color, pattern, texture, logos, and design details.
+- Ensure realistic shadows, fabric folds, wrinkles, and lighting that match the person's photo lighting conditions.
+- The output must look like a professional e-commerce photo — ultra-realistic, high-resolution, no artifacts.
+
+User instruction: ${lastMsg.content}`,
           });
         } else {
           contentParts.push({ type: "text", text: lastMsg.content });
