@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Send, ImageIcon, Upload, X, Loader2 } from "lucide-react";
 
 interface ChatInputProps {
